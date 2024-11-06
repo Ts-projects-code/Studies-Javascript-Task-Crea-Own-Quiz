@@ -60,10 +60,10 @@ function startQuiz(): void {
 //This is paused to test the quiz directely
 
 // If validation fails, show an alert and return
-//    if (!valid) {
-//        alert("Please correct the highlighted errors.");
-//        return;
-//    }
+    if (!valid) {
+        alert("Please correct the highlighted errors.");
+        return;
+    }
 
     // If all validations pass, proceed with the quiz
     document.getElementById("userNameDisplay")!.innerText = `${firstName} ${lastName}`;
