@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Quiz Application</title>
+        <link href="/dist/output.css" rel="stylesheet">
+    </head>
+    <body class="min-h-screen bg-gray-800">
+        <div class="container mx-auto px-4 py-8 max-w-4xl">
+            <!-- Page Header -->
+            <header class="mb-8">
+                <h1 class="text-3xl font-bold text-center text-gray-100">Quiz Application</h1>
+            </header>
+
+            <!-- User Information Section -->
+            <section id="user-info" class="bg-gray-600 shadow-md rounded-lg p-6 mb-8">
+                <h2 class="text-2xl font-semibold mb-4 text-gray-100">Enter Your Information</h2>
+                <div class="space-y-4">
+                    <input type="text" id="firstName" placeholder="First Name" required
+                           class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-200 focus:border-teal-200 bg-cyan-600  text-white placeholder-gray-200">
+                    <p id="firstNameError" class="text-red-500 hidden">Please enter a valid first name</p>
+                    <input type="text" id="lastName" placeholder="Last Name" required
+                           class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-200 focus:border-teal-200 bg-cyan-600  text-white placeholder-gray-200">
+                    <p id="lastNameError" class="text-red-500 hidden">Please enter a valid last name</p>
+                    <input type="email" id="email" placeholder="Email" required
+                           class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-200 focus:border-teal-200 bg-cyan-600 text-white placeholder-gray-200">
+                    <p id="emailError" class="text-red-500 hidden">Please enter a valid email address</p>
+                    <button onclick="startQuiz()"
+                            class="w-full bg-gray-600 text-white px-4 py-3 rounded-lg hover:bg-gray-700 transition duration-200 border border-white">
+                        Start Quiz
+                    </button>
+                </div>
+            </section>
+
+            <!-- Quiz Section -->
+            <section id="quiz-container" class="hidden bg-cyan-600 shadow-md rounded-lg p-6 mb-8">
+                <h2 class="text-2xl font-semibold mb-4 text-gray-700">Quiz</h2>
+                <p class="mb-4">Welcome, <span id="userNameDisplay" class="font-bold"></span>!</p>
+                <div id="quiz-cards" class="space-y-6"></div>
+                <button onclick="submitQuiz()"
+                        class="mt-6 w-full bg-gray-600 text-white px-4 py-3 rounded-lg hover:bg-gray-700 transition duration-200">
+                    Submit Quiz
+                </button>
+            </section>
+
+            <!-- Quiz Creation Section -->
+            <section id="quiz-creation" class="bg-gray-600 shadow-md rounded-lg p-6 mb-8">
+                <h2 class="text-2xl font-semibold mb-4 text-white">Create a New Quiz</h2>
+                <div class="space-y-4">
+                    <input type="text" id="quizTitle" placeholder="Quiz Title"
+                           class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-200 focus:border-teal-200 text-white placeholder-gray-200 bg-cyan-600">
+                    <div id="questions-container" class="space-y-6"></div>
+                    <div class="flex gap-4">
+                        <button onclick="addQuestion()"
+                                class="flex-1 bg-gray-600 text-white px-4 py-3 rounded-lg hover:bg-gray-700 transition duration-200 border border-white">
+                            Add Question
+                        </button>
+                        <button onclick="saveQuiz()"
+                                class="flex-1 bg-gray-600 text-white px-4 py-3 rounded-lg hover:bg-gray-700 transition duration-200 border border-white">
+                            Save Quiz
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Saved Quizzes Section -->
+            <section id="quiz-list" class="bg-gray-600 shadow-md rounded-lg p-6">
+                <h2 class="text-2xl font-semibold mb-4 text-white">Saved Quizzes</h2>
+                <div id="quizListContainer" class="space-y-4"></div>
+            </section>
+        </div>
+
+        <script src="app/src/app.js"></script>
+    </body>
+</html>
