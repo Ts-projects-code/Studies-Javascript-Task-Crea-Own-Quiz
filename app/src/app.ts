@@ -3,6 +3,7 @@ interface QuizQuestion {
     answerType: "text" | "radio" | "checkbox";
     answerOptions?: string[];
     correctAnswer?: string | string[];
+    required?: boolean; // New property to track required status
 }
 
 interface Quiz {
@@ -60,10 +61,10 @@ function startQuiz(): void {
 //This is paused to test the quiz directely
 
 // If validation fails, show an alert and return
-    if (!valid) {
-        alert("Please correct the highlighted errors.");
-        return;
-    }
+    /*    if (!valid) {
+            alert("Please correct the highlighted errors.");
+            return;
+        }*/
 
     // If all validations pass, proceed with the quiz
     document.getElementById("userNameDisplay")!.innerText = `${firstName} ${lastName}`;
@@ -97,6 +98,12 @@ function addQuestion(): void {
             </div>
             <div class="bg-red-700 ml-2" style="margin: 1rem 0 1rem 1.5rem;">
                 <button onclick="removeQuestion(this)" class="text-red-600 hover:text-red-800 px-4 py-3 m-1 rounded-lg hover:bg-gray-700 transition duration-200 border border-white" style="color: white; background-color: rgba(163, 17, 17, 0.23);">Remove Question</button>
+            </div>
+            <div class="required-container">
+              <label class="flex items-center space-x-2">
+                <input type="checkbox" class="required-checkbox h-4 w-4 text-blue-600 rounded">
+                <span class="text-gray-700">Required</span>
+              </label>
             </div>
         </div>
     `;
@@ -168,12 +175,15 @@ function saveQuiz(): void {
             .map(input => (input as HTMLInputElement).value)
             .filter(value => value.trim() !== '');
         const correctAnswer = (el.querySelector(".correct-answer") as HTMLSelectElement)?.value;
+        const isRequired = (el.querySelector(".required-checkbox") as HTMLInputElement)?.checked || false;
+
 
         return {
             questionText,
             answerType,
             answerOptions: options.length > 0 ? options : undefined,
-            correctAnswer: correctAnswer ? correctAnswer : undefined
+            correctAnswer: correctAnswer ? correctAnswer : undefined,
+            required: isRequired
         };
     });
 
@@ -203,60 +213,95 @@ function loadQuizQuestions(quiz?: Quiz): void {
     quizCards.innerHTML = "";
 
     const questions = quiz?.questions || [
-        {questionText: "What is 2+2?", answerType: "radio", answerOptions: ["3", "4", "5"], correctAnswer: "4"},
+        {
+            questionText: "What is 2+2?",
+            answerType: "radio",
+            answerOptions: ["3", "4", "5"],
+            correctAnswer: "4",
+            required: true
+        },
         {
             questionText: "Select prime numbers",
             answerType: "checkbox",
             answerOptions: ["2", "3", "4"],
-            correctAnswer: ["2", "3"]
+            correctAnswer: ["2", "3"],
+            required: true
         },
-        {questionText: "Explain the concept of gravity as if I was 3 years old", answerType: "text"},
-        {questionText: "What is 5+2?", answerType: "radio", answerOptions: ["7", "3", "5"], correctAnswer: "7"},
+        {questionText: "Explain the concept of gravity as if I was 3 years old", answerType: "text", required: false},
         {
-            questionText: "Select prime numbers",
-            answerType: "checkbox",
-            answerOptions: ["5", "7", "11"],
-            correctAnswer: ["5", "11"]
+            questionText: "What is 5+2?",
+            answerType: "radio",
+            answerOptions: ["7", "3", "5"],
+            correctAnswer: "7",
+            required: false
         },
+        {
+            questionText: "How far is the moon from the sun?",
+            answerType: "text",
+            required: false
+        },
+        // ... rest of your questions
     ];
 
     questions.forEach((q, index) => {
         const card = document.createElement("div");
-        card.className = "quiz-card bg-gray-50 p-6 rounded-lg border border-gray-200 mb-4";
+        card.className = `quiz-card bg-gray-50 p-6 rounded-lg border border-gray-200 mb-4 ${q.required ? 'required' : ''}`;
+
+        // Add question type and correct answer data attributes
         card.setAttribute('data-question-type', q.answerType);
         if (q.correctAnswer) {
-            card.setAttribute('data-correct-answer', Array.isArray(q.correctAnswer) ?
-                JSON.stringify(q.correctAnswer) : q.correctAnswer);
+            card.setAttribute('data-correct-answer',
+                Array.isArray(q.correctAnswer) ? JSON.stringify(q.correctAnswer) : q.correctAnswer
+            );
         }
 
-
-        let questionHtml = `<p class="font-medium mb-2" style="margin: 1rem;">${index + 1}. ${q.questionText}</p>`;
+        let questionHtml = `
+            <div class="flex items-start gap-2">
+                <p class="font-medium mb-2">${index + 1}. ${q.questionText}</p>
+                ${q.required ? '<span class="text-red-500 text-sm">*Required</span>' : ''}
+            </div>
+        `;
 
         if (q.answerType === "radio" || q.answerType === "checkbox") {
             questionHtml += `<div class="space-y-2">`;
             q.answerOptions?.forEach((option, optIndex) => {
                 questionHtml += `
-                    <label class="flex items-center space-x-2" style="margin-bottom: 1.5rem;">
-                        <input type="${q.answerType}" name="q${index}" value="${option}"
-                               class="form-${q.answerType} h-4 w-4 text-blue-600 mt-auto mb-auto" style="margin-top: auto; margin-bottom: auto; margin-left: 1rem;">
-                        <span class="ml-2" style="margin-left: 1rem;">${option}</span>
+                    <label class="flex items-center space-x-2 p-2 hover:bg-gray-100 rounded">
+                        <input type="${q.answerType}"
+                               name="q${index}"
+                               value="${option}"
+                               class="form-${q.answerType} h-4 w-4 text-blue-600">
+                        <span class="ml-2">${option}</span>
                     </label>`;
             });
             questionHtml += `</div>`;
         } else {
             questionHtml += `
-                <textarea id="textvalidate" name="q${index}"
-                    class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 mb-2" style="margin: 1rem;"
+                <textarea name="q${index}"
+                    class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     rows="3"></textarea>`;
         }
 
-        // Add a hidden results div for each question
+        // Add validation feedback container
         questionHtml += `
             <div class="result-feedback hidden mt-4 p-4 rounded-lg">
             </div>
         `;
+
         card.innerHTML = questionHtml;
         quizCards.appendChild(card);
+
+        // Add real-time validation feedback
+        const inputs = card.querySelectorAll('input, textarea');
+        inputs.forEach(input => {
+            input.addEventListener('change', () => {
+                const feedback = card.querySelector('.result-feedback') as HTMLElement;
+                feedback.textContent = '✓ Answer recorded';
+                feedback.classList.remove('hidden', 'bg-red-100', 'text-red-700');
+                feedback.classList.add('bg-green-100', 'text-green-700');
+                card.classList.remove('border-red-500');
+            });
+        });
     });
 }
 
@@ -394,54 +439,72 @@ function deleteQuiz(index: number): void {
 
 function submitQuiz(): void {
     const questions = Array.from(document.querySelectorAll(".quiz-card"));
-    let answeredQuestions = 0;
+    let allRequiredAnswered = true;
+    let totalAnswered = 0;
 
-    /*    questions.forEach((card, index) => {
-            const answerType = card.querySelector("input[type='radio']") ? "radio" : "checkbox";
-            const answerTypeText = (document.getElementById("textvalidate") as HTMLInputElement).value;
-
-            if (answerType === "radio") {
-                const isChecked = Array.from(card.querySelectorAll("input[type='radio']"))
-                    .some((input) => (input as HTMLInputElement).checked);
-                if (isChecked) {
-                    answeredQuestions++;
-                }
-            } else if (answerType === "checkbox") {
-                const isChecked = Array.from(card.querySelectorAll("input[type='checkbox']"))
-                    .some((input) => (input as HTMLInputElement).checked);
-                if (isChecked) {
-                    answeredQuestions++;
-                }
-            }
-            if (answerTypeText){
-                answeredQuestions++;
-            }
-        });*/
-
-    questions.forEach((card) => {
-        const questionType = card.getAttribute('data-question-type');
-
-        if (questionType === 'radio' || questionType === 'checkbox') {
-            const isAnswered = card.querySelector('input:checked') !== null;
-            if (isAnswered) answeredQuestions++;
-        } else if (questionType === 'text') {
-            const textArea = card.querySelector('textarea') as HTMLTextAreaElement;
-            if (textArea.value.trim()) answeredQuestions++;
-        }
+    // Clear previous validation states
+    questions.forEach(card => {
+        const resultFeedback = card.querySelector('.result-feedback') as HTMLElement;
+        resultFeedback.classList.add('hidden');
+        resultFeedback.classList.remove('bg-red-100', 'bg-green-100');
     });
 
-    if (answeredQuestions < 2) {
-        alert("Please answer at least two questions before submitting the quiz.");
+    // Validate each question
+    questions.forEach((card, index) => {
+        const questionType = card.getAttribute('data-question-type');
+        const isRequired = card.classList.contains('required');
+        const resultFeedback = card.querySelector('.result-feedback') as HTMLElement;
+        let isAnswered = false;
+
+        // Check if question is answered based on type
+        if (questionType === 'radio' || questionType === 'checkbox') {
+            isAnswered = card.querySelector('input:checked') !== null;
+        } else if (questionType === 'text') {
+            const textArea = card.querySelector('textarea') as HTMLTextAreaElement;
+            isAnswered = textArea.value.trim().length > 0;
+        }
+
+        // Update UI feedback
+        if (isAnswered) {
+            totalAnswered++;
+            resultFeedback.textContent = '✓ Question answered';
+            resultFeedback.classList.remove('hidden', 'bg-red-100');
+            resultFeedback.classList.add('bg-green-100', 'text-green-700');
+            card.classList.remove('border-red-500');
+        } else if (isRequired) {
+            allRequiredAnswered = false;
+            resultFeedback.textContent = '⚠ This question is required';
+            resultFeedback.classList.remove('hidden', 'bg-green-100');
+            resultFeedback.classList.add('bg-red-100', 'text-red-700');
+            card.classList.add('border-red-500');
+        }
+
+        // Show the feedback
+        resultFeedback.classList.remove('hidden');
+    });
+
+    // Check if minimum requirements are met
+    if (!allRequiredAnswered) {
+        const requiredMessage = document.createElement('div');
+        requiredMessage.className = 'fixed top-4 right-4 bg-red-100 text-red-700 p-4 rounded-lg shadow-lg';
+        requiredMessage.textContent = 'Please answer all required questions before submitting.';
+        document.body.appendChild(requiredMessage);
+        setTimeout(() => requiredMessage.remove(), 5000);
         return;
     }
 
+    if (totalAnswered < 2) {
+        const minAnswersMessage = document.createElement('div');
+        minAnswersMessage.className = 'fixed top-4 right-4 bg-yellow-100 text-yellow-700 p-4 rounded-lg shadow-lg';
+        minAnswersMessage.textContent = 'Please answer at least two questions before submitting.';
+        document.body.appendChild(minAnswersMessage);
+        setTimeout(() => minAnswersMessage.remove(), 5000);
+        return;
+    }
+
+    // If all validations pass, calculate and display results
     const results = calculateQuizResults();
     displayQuizResults(results);
-
-//    alert("Quiz submitted successfully!");
-//    document.getElementById("quiz-container")!.style.display = "none";
-//    document.getElementById("user-info")!.style.display = "block";
-
     document.querySelector("#quiz-cards")!.classList.add("hidden");
     document.querySelector("button[onclick='submitQuiz()']")!.classList.add("hidden");
 }
